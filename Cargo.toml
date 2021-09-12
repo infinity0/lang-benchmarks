@@ -1,0 +1,14 @@
+[package]
+name = "lang-benchmarks"
+version = "0.1.0"
+authors = ["Ximin Luo"]
+edition = "2018"
+
+[dependencies]
+criterion = "0.3"
+
+# bench implies --release i.e. -O2
+[[bench]]
+name = "fill-order"
+path = "fill-order.rs"
+harness = false

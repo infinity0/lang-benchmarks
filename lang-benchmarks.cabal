@@ -1,0 +1,31 @@
+cabal-version:       >=1.10
+name:                lang-benchmarks
+version:             0.1.0.0
+-- synopsis:
+-- description:
+-- bug-reports:
+-- license:
+license-file:        LICENSE
+-- author:
+-- maintainer:
+-- copyright:
+-- category:
+build-type:          Simple
+extra-source-files:  CHANGELOG.md
+
+executable fill-order
+  main-is:             FillOrder.hs
+  -- other-modules:
+  -- other-extensions:
+  ghc-options:         -O2 -rtsopts -Wall -fno-ignore-asserts
+  build-depends:
+      base >=4.14 && <4.15
+    , containers
+    , criterion
+    , deepseq
+    , primitive
+    , strict-containers
+    , transformers
+    , vector
+  -- hs-source-dirs:
+  default-language:    Haskell2010

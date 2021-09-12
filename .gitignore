@@ -1,0 +1,4 @@
+/dist-newstyle
+/target
+/.ghc.environment.*
+/Cargo.lock
