@@ -25,7 +25,7 @@ import           System.IO                        (hGetContents, stdin)
 fillOrder1 :: (Traversable t, Ord i, Num i) => t i -> i -> (t i, i)
 fillOrder1 = runState . traverse (\c -> state $ \r -> let x = min c r in (c - x, r - x))
 
--- Haskell equivalent of Patrick's 2-pass solution in q: -': Order &+\ Book
+-- Haskell equivalent of Patrick's 2-pass solution in K: -': Order &+\ Book
 -- Behaviour is different from fillOrder1:
 -- * Returns filled quantity rather than remaining quantity
 -- * Does not return leftovers for a partially-filled order.
@@ -124,6 +124,12 @@ primTraverse f v = unstreamPrimM $ VFB.mapM f $ VG.stream v
 fillOrder1VF :: (VG.Vector v i, Ord i, Num i) => v i -> i -> (v i, i)
 fillOrder1VF book order = runST $ runStateT (primTraverse fillOrderPart book) order
 
+-- Most optimised version of fillOrder2FilledOnly
+fillOrder2FilledOnlyVF :: (VG.Vector v i, Ord i, Num i) => v i -> i -> v i
+fillOrder2FilledOnlyVF book order = runST $ do
+  pass1 <- evalStateT (primTraverse (\c -> state $ \prev -> let x = min order (c + prev) in (x, x)) book) 0
+  evalStateT (primTraverse (\cur -> state $ \prev -> (cur - prev, cur)) pass1) 0
+
 -- Most optimised version of fillOrder2Filled
 fillOrder2FilledVF :: (VG.Vector v i, Ord i, Num i) => v i -> i -> (v i, i)
 fillOrder2FilledVF book order = runST $ do
@@ -153,6 +159,7 @@ runChecks x =
   assert (checkFillOrder1 Data.Vector.Storable.fromList fillOrder1VFNaive) $
   assert (checkFillOrder1 Data.Vector.Storable.fromList fillOrder1VF) $
   assert (checkFillOrder2Filled Data.Vector.Storable.fromList fillOrder2FilledVF) $
+  assert (checkFillOrder2FilledOnly Data.Vector.Storable.fromList fillOrder2FilledOnlyVF) $
   x
  where
   checkFillOrder1 :: Eq (v Int) => ([Int] -> v Int) -> (v Int -> Int -> (v Int, Int)) -> Bool
@@ -229,6 +236,7 @@ runBench order bookList0 =
         , bench "fillOrder1VM" $ nf (fillOrder1VM bookVecU) order
         , bench "fillOrder1VFNaive" $ nf (fillOrder1VFNaive bookVecU) order
         , bench "fillOrder1VF" $ nf (fillOrder1VF bookVecU) order
+        , bench "fillOrder2FilledOnlyVF" $ nf (fillOrder2FilledOnlyVF bookVecU) order
         , bench "fillOrder2FilledVF" $ nf (fillOrder2FilledVF bookVecU) order
         ]
       , bgroup "vector-storable" $
@@ -236,6 +244,7 @@ runBench order bookList0 =
         , bench "fillOrder1VM" $ nf (fillOrder1VM bookVecS) order
         , bench "fillOrder1VFNaive" $ nf (fillOrder1VFNaive bookVecS) order
         , bench "fillOrder1VF" $ nf (fillOrder1VF bookVecS) order
+        , bench "fillOrder2FilledOnlyVF" $ nf (fillOrder2FilledOnlyVF bookVecS) order
         , bench "fillOrder2FilledVF" $ nf (fillOrder2FilledVF bookVecS) order
         ]
       ]

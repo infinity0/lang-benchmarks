@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion, BatchSize};
 use std::io::{self, BufRead};
 use std::str::FromStr;
 
@@ -22,9 +22,11 @@ fn criterion_benchmark(c: &mut Criterion) {
   }
   println!("order: {}", order);
   println!("book length: {}", book0.len());
-  // perform the copy as part of the benchmark, to make it a bit fairer with haskell
-  // in practise the non-cloning version is only about 15% faster, i.e. 85% as slow
-  c.bench_function("fill_order", |b| b.iter(|| fill_order(&mut book0.clone(), order)));
+  c.bench_function("fill_order", |b| b.iter_batched(
+    || book0.clone(),
+    |mut book| fill_order(&mut book, order),
+    BatchSize::LargeInput,
+  ));
 }
 
 criterion_group!(benches, criterion_benchmark);
